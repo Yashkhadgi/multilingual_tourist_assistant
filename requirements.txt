@@ -1,0 +1,10 @@
+gradio
+anthropic
+langgraph
+langchain
+chromadb
+openai-whisper
+gTTS
+requests
+python-dotenv
+sqlalchemy
