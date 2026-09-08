@@ -1,7 +1,9 @@
-venv/
-__pycache__/
 *.pyc
+.DS_Store
 .env
+__pycache__/
+config/.env
 data/embeddings/
 logs/
-.DS_Store
+memory/sessions.db
+venv/
