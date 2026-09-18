@@ -45,7 +45,7 @@ def run_planner_agent(user_message: str, history: str = "") -> str:
         + (f"Recent conversation:\n{history}\n\n" if history else "")
     )
 
-    return call_llm(model=PLANNER_MODEL, system_prompt=system_prompt, user_message=user_message, max_tokens=800)
+    return call_llm(model=PLANNER_MODEL, system_prompt=system_prompt, user_message=user_message, max_tokens=1500)
 
 
 if __name__ == "__main__":
