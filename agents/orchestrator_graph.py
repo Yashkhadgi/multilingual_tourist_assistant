@@ -26,8 +26,12 @@ def classify_node(state: AgentState) -> AgentState:
     system_prompt = (
         "You are an intent classifier for a tourist assistant. "
         "Classify the user's message into exactly ONE of these categories:\n"
-        "- 'planner' : if the user wants an itinerary, trip plan, schedule, or travel route\n"
-        "- 'info' : if the user is asking about a place, monument, culture, food, or general tourist information\n\n"
+        "- 'planner' : if the user wants an itinerary, trip plan, schedule, day-wise plan, travel route, "
+        "or mentions accommodation/budget/food/travel FOR a trip (even with typos like 'itenary', 'acomodation'). "
+        "This includes requests like 'plan a trip', 'X days in Y', 'help me visit places'.\n"
+        "- 'info' : ONLY if the user is asking a standalone factual question about a place, monument, culture, "
+        "or food, with NO request to plan/organize a trip.\n\n"
+        "When in doubt, prefer 'planner'. "
         "Respond with ONLY the single word: planner OR info. No explanation, no punctuation."
     )
     result = call_llm(
