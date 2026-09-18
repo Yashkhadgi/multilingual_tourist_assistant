@@ -41,7 +41,7 @@ def run_rag_agent(user_message: str, history: str = "") -> str:
             + (f"\n\nRecent conversation:\n{history}" if history else "")
         )
 
-    return call_llm(model=RAG_MODEL, system_prompt=system_prompt, user_message=user_message, max_tokens=500)
+    return call_llm(model=RAG_MODEL, system_prompt=system_prompt, user_message=user_message, max_tokens=800)
 
 
 if __name__ == "__main__":
