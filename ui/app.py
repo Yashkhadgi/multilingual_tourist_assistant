@@ -1,3 +1,24 @@
+# Monkey-patch gradio_client for compatibility with modern Pydantic boolean schemas
+try:
+    import gradio_client.utils as _gc_utils
+    _orig_get_type = _gc_utils.get_type
+    _orig_json_schema = _gc_utils._json_schema_to_python_type
+
+    def _safe_get_type(schema):
+        if not isinstance(schema, dict):
+            return {}
+        return _orig_get_type(schema)
+
+    def _safe_json_schema(schema, defs):
+        if not isinstance(schema, dict) or schema == {}:
+            return "Any"
+        return _orig_json_schema(schema, defs)
+
+    _gc_utils.get_type = _safe_get_type
+    _gc_utils._json_schema_to_python_type = _safe_json_schema
+except Exception:
+    pass
+
 import gradio as gr
 import sys
 import os
