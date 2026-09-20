@@ -38,13 +38,13 @@ def speech_to_text(audio_bytes: bytes, file_format: str = "wav", lang_code: str 
 
         files = {"file": (f"audio.{file_format}", io.BytesIO(audio_bytes), mime)}
         data = {
-            "model": "saaras:v2",
+            "model": "saaras:v3",
             "language_code": lang_code,
         }
 
         resp = requests.post(
             f"{BASE_URL}/speech-to-text",
-            headers={"api-subscription-key": SARVAM_API_KEY},
+            headers={"api-subscription-key": SARVAM_API_KEY.strip()},
             files=files,
             data=data,
             timeout=30,
