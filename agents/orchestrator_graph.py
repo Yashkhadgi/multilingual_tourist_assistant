@@ -10,6 +10,7 @@ from config.settings import ORCHESTRATOR_MODEL
 from agents.planner_agent import run_planner_agent
 from agents.rag_agent import run_rag_agent
 from agents.safety_agent import run_safety_agent
+from agents.etiquette_agent import run_etiquette_agent
 from memory.session_memory import save_turn, format_history
 
 
@@ -33,14 +34,16 @@ def classify_node(state: AgentState) -> AgentState:
         "- 'info' : ONLY if the user is asking a standalone factual question about a place, monument, culture, "
         "or food, with NO request to plan/organize a trip.\n"
         "- 'safety' : if the user describes an emergency, feels unsafe, is lost, injured, robbed, "
-        "needs a hospital/police, or asks for emergency help.\n\n"
+        "needs a hospital/police, or asks for emergency help.\n"
+        "- 'etiquette' : if the user asks about local customs, dress code, manners, what's respectful "
+        "or disrespectful, tipping norms, greetings, temple/religious etiquette.\n\n"
         "If the message describes real distress or an emergency, classify as 'safety' regardless of any other "
         "planning/info content in the same message — safety always takes top priority.\n\n"
         "Real user queries often contain typos and run-on phrasing (e.g. 'acomodation', 'planing', 'everythng') — "
         "do not be thrown off by that. "
         "If a message asks for BOTH info about a place AND a plan/itinerary/budget/route, classify as 'planner' (planning intent wins). "
         "When genuinely ambiguous, default to 'planner'.\n\n"
-        "Respond with ONLY one word: planner OR info OR safety. No explanation, no punctuation."
+        "Respond with ONLY one word: planner OR info OR safety OR etiquette. No explanation, no punctuation."
     )
     result = call_llm(
         model=ORCHESTRATOR_MODEL,
@@ -49,7 +52,7 @@ def classify_node(state: AgentState) -> AgentState:
         max_tokens=10
     )
     intent = result.strip().lower()
-    if intent not in ["planner", "info", "safety"]:
+    if intent not in ["planner", "info", "safety", "etiquette"]:
         intent = "planner"
 
     state["intent"] = intent
@@ -80,8 +83,16 @@ def safety_node(state: AgentState) -> AgentState:
     return state
 
 
+# Node 5: Cultural Etiquette agent
+def etiquette_node(state: AgentState) -> AgentState:
+    history = format_history(state["session_id"])
+    state["response"] = run_etiquette_agent(state["user_message"], history=history)
+    state["agent_used"] = "Etiquette Agent"
+    return state
+
+
 # Conditional routing function — decides which node runs next
-def route_decision(state: AgentState) -> Literal["planner", "info", "safety"]:
+def route_decision(state: AgentState) -> Literal["planner", "info", "safety", "etiquette"]:
     return state["intent"]
 
 
@@ -93,6 +104,7 @@ def build_graph():
     graph.add_node("planner", planner_node)
     graph.add_node("info", rag_node)
     graph.add_node("safety", safety_node)
+    graph.add_node("etiquette", etiquette_node)
 
     graph.set_entry_point("classify")
 
@@ -103,12 +115,14 @@ def build_graph():
             "planner": "planner",
             "info": "info",
             "safety": "safety",
+            "etiquette": "etiquette",
         }
     )
 
     graph.add_edge("planner", END)
     graph.add_edge("info", END)
     graph.add_edge("safety", END)
+    graph.add_edge("etiquette", END)
 
     return graph.compile()
 
