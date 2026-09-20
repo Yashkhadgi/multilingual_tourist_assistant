@@ -5,32 +5,32 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from tavily import TavilyClient
 from config.settings import TAVILY_API_KEY
 
-_client = None
-
-
-def _get_client():
-    global _client
-    if _client is None:
-        if not TAVILY_API_KEY:
-            raise ValueError("TAVILY_API_KEY not set in .env")
-        _client = TavilyClient(api_key=TAVILY_API_KEY)
-    return _client
+client = TavilyClient(api_key=TAVILY_API_KEY) if TAVILY_API_KEY else None
 
 
 def search_facts(query: str) -> str:
     try:
-        client = _get_client()
-        result = client.search(
+        if not client:
+            print("Warning: Tavily client is not initialized (TAVILY_API_KEY not set).")
+            return ""
+
+        response = client.search(
             query=query,
             search_depth="basic",
-            include_answer=True,
             max_results=3,
+            include_answer=True,
         )
-        return result.get("answer", "") or ""
+
+        if response.get("answer"):
+            return response["answer"]
+
+        results = response.get("results", [])
+        snippets = [r.get("content", "") for r in results[:2] if r.get("content")]
+        return " ".join(snippets)
     except Exception as e:
-        print(f"Tavily search failed: {e}")
+        print(f"Warning: Tavily search failed: {e}")
         return ""
 
 
 if __name__ == "__main__":
-    print(search_facts("travel time and distance from Nagpur to Delhi by train"))
+    print(search_facts("travel distance and time from Nagpur to Delhi by train"))
